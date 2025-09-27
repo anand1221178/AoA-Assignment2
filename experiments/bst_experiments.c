@@ -5,7 +5,7 @@
 #include <limits.h>
 #include <math.h>
 #include "bst.h"
-#include "utils.h"
+// #include "utils.h"
 
 // Experiment parameters
 const int TREE_SIZES[] = {100, 500, 1000, 5000, 10000, 50000, 100000};

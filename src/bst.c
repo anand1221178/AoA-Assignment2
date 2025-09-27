@@ -110,7 +110,7 @@ Node* tree_search(Node* x, int k) {
 }
 
 // TREE-SUCCESSOR(x) - Find successor of node x
-Node* tree_succesor(Node* x) {
+Node* tree_successor(Node* x) {
     if (x->right != NULL)                  // If right subtree exists
         return tree_min(x->right);     // Successor is min in right subtree
     Node* y = x->p;                        // Start with parent
