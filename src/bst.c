@@ -149,3 +149,17 @@ void inorder_tree_walk_silent(Node* x) {
         inorder_tree_walk_silent(x->right);
     }
 }
+
+// Helper function for testing - inorder walk with limit
+void inorder_tree_walk_limit(Node* x, int limit) {
+    static int count = 0;
+    if (x != NULL && count < limit) {
+        inorder_tree_walk_limit(x->left, limit);
+        if (count < limit) {
+            printf("%d ", x->key);
+            count++;
+        }
+        inorder_tree_walk_limit(x->right, limit);
+    }
+    if (x == NULL) count = 0; // Reset for next call
+}

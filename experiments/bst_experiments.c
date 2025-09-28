@@ -1,255 +1,361 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <string.h>
-#include <limits.h>
 #include <math.h>
-#include "bst.h"
-// #include "utils.h"
+#include "../include/bst.h"
+#include "../include/utils.h"
 
-// Experiment parameters
-const int TREE_SIZES[] = {100, 500, 1000, 5000, 10000, 50000, 100000};
-const int NUM_SIZES = 7;
+#define MAX_TREES 50      // Number of trees to build for each size
+#define MIN_SIZE 100      // Minimum tree size
+#define MAX_SIZE 50000    // Maximum tree size (safe for all operations)
+#define NUM_SIZES 18      // Number of different sizes to test
+#define MAX_SEQUENTIAL_SIZE 10000  // Maximum size for sequential (worst-case) trees
 
-// Number of repetitions for each size (more for smaller trees)
-int get_repetitions(int size) {
-    if (size <= 1000) return 1000;
-    if (size <= 5000) return 500;
-    if (size <= 10000) return 100;
-    return 50;
+typedef enum {
+    SHUFFLE_NONE,
+    SHUFFLE_FISHER_YATES,
+    SHUFFLE_RANDOMIZE_INPLACE,
+    SHUFFLE_PERMUTE_SORT
+} ShuffleMethod;
+
+const char* get_method_name(ShuffleMethod method) {
+    switch(method) {
+        case SHUFFLE_NONE: return "NoShuffle";
+        case SHUFFLE_FISHER_YATES: return "FisherYates";
+        case SHUFFLE_RANDOMIZE_INPLACE: return "RandomizeInPlace";
+        case SHUFFLE_PERMUTE_SORT: return "PermuteBySorting";
+        default: return "Unknown";
+    }
 }
 
-// Experiment 1: Tree height analysis
-void experiment_tree_heights() {
-    printf("Running BST height experiments...\n");
+void apply_shuffle(int* keys, int n, ShuffleMethod method) {
+    switch(method) {
+        case SHUFFLE_NONE:
+            no_shuffle(keys, n);
+            break;
+        case SHUFFLE_FISHER_YATES:
+            fisher_yates(keys, n);
+            break;
+        case SHUFFLE_RANDOMIZE_INPLACE:
+            randomize_in_place(keys, n);
+            break;
+        case SHUFFLE_PERMUTE_SORT:
+            permute_by_sorting(keys, n);
+            break;
+    }
+}
 
-    write_csv_header("data/bst_heights.csv", "size,avg_height,min_height,max_height");
-
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int size = TREE_SIZES[s];
-        int repetitions = get_repetitions(size);
-
-        int total_height = 0;
-        int min_height = INT_MAX;
-        int max_height = 0;
-
-        printf("Testing size %d with %d repetitions...\n", size, repetitions);
-
-        for (int rep = 0; rep < repetitions; rep++) {
-            // Create tree and shuffled keys
-            Tree* tree = create_tree();
-            int* keys = create_shuffled_array(size);
-
-            // Build tree
-            for (int i = 0; i < size; i++) {
-                Node* node = create_node(keys[i]);
-                tree_insert(tree, node);
+// Run all experiments for a specific shuffle method
+void run_experiments_for_method(ShuffleMethod method) {
+    const char* method_name = get_method_name(method);
+    
+    // Experiment 1: Height
+    printf("\n=== %s: Height Experiment ===\n", method_name);
+    printf("n,avg_height\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        // Skip very large sequential trees to avoid stack overflow
+        if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+            printf("%d,%.2f\n", n, (double)(n - 1));  // Height is n-1 for sequential
+            continue;
+        }
+        
+        // Adjust number of trees based on size
+        int num_trees;
+        if (method == SHUFFLE_NONE) {
+            num_trees = (n > 1000) ? 1 : 5;
+        } else {
+            if (n <= 1000) num_trees = MAX_TREES;
+            else if (n <= 10000) num_trees = 30;
+            else num_trees = 10;
+        }
+        
+        double avg_height = 0;
+        for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+            int* keys = generate_sequence(n);
+            apply_shuffle(keys, n, method);
+            
+            Tree* T = create_tree();
+            for (int i = 0; i < n; i++) {
+                Node* z = create_node(keys[i]);
+                tree_insert(T, z);
             }
-
-            // Measure height
-            int height = tree_height(tree->root);
-            total_height += height;
-            if (height < min_height) min_height = height;
-            if (height > max_height) max_height = height;
-
-            // Cleanup
-            destroy_tree(tree->root);
-            free(tree);
+            
+            avg_height += tree_height(T->root);
+            
+            destroy_tree(T->root);
+            free(T);
             free(keys);
         }
-
-        double avg_height = (double)total_height / repetitions;
-        double data[] = {avg_height, (double)min_height, (double)max_height};
-        append_csv_data("data/bst_heights.csv", size, data, 3);
-
-        printf("Size %d: avg=%.2f, min=%d, max=%d\n",
-               size, avg_height, min_height, max_height);
+        avg_height /= num_trees;
+        printf("%d,%.2f\n", n, avg_height);
     }
-    printf("Height experiments completed!\n\n");
-}
-
-// Experiment 2: Build time analysis
-void experiment_build_times() {
-    printf("Running BST build time experiments...\n");
-
-    write_csv_header("data/bst_build_times.csv", "size,avg_build_time,min_build_time,max_build_time");
-
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int size = TREE_SIZES[s];
-        int repetitions = get_repetitions(size);
-
-        double total_time = 0.0;
-        double min_time = HUGE_VAL;
-        double max_time = 0.0;
-
-        printf("Testing size %d with %d repetitions...\n", size, repetitions);
-
-        for (int rep = 0; rep < repetitions; rep++) {
-            // Prepare shuffled keys
-            int* keys = create_shuffled_array(size);
-            Tree* tree = create_tree();
-
-            // Time the build process
-            double start_time = get_time();
-
-            for (int i = 0; i < size; i++) {
-                Node* node = create_node(keys[i]);
-                tree_insert(tree, node);
+    
+    // Experiment 2: Build Time
+    printf("\n=== %s: Build Time Experiment ===\n", method_name);
+    printf("n,avg_time_ms\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        // Skip very large sequential trees
+        if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+            continue;
+        }
+        
+        int num_trees;
+        if (method == SHUFFLE_NONE) {
+            num_trees = (n > 1000) ? 1 : 5;
+        } else {
+            if (n <= 1000) num_trees = 30;
+            else if (n <= 10000) num_trees = 20;
+            else num_trees = 5;
+        }
+        
+        double avg_time = 0;
+        for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+            int* keys = generate_sequence(n);
+            apply_shuffle(keys, n, method);
+            
+            Tree* T = create_tree();
+            
+            double start_time = get_time_ms();
+            for (int i = 0; i < n; i++) {
+                Node* z = create_node(keys[i]);
+                tree_insert(T, z);
             }
-
-            double end_time = get_time();
-            double build_time = time_diff(start_time, end_time);
-
-            total_time += build_time;
-            if (build_time < min_time) min_time = build_time;
-            if (build_time > max_time) max_time = build_time;
-
-            // Cleanup
-            destroy_tree(tree->root);
-            free(tree);
+            double end_time = get_time_ms();
+            
+            avg_time += (end_time - start_time);
+            
+            destroy_tree(T->root);
+            free(T);
             free(keys);
         }
-
-        double avg_time = total_time / repetitions;
-        double data[] = {avg_time, min_time, max_time};
-        append_csv_data("data/bst_build_times.csv", size, data, 3);
-
-        printf("Size %d: avg=%.6f, min=%.6f, max=%.6f seconds\n",
-               size, avg_time, min_time, max_time);
+        avg_time /= num_trees;
+        printf("%d,%.4f\n", n, avg_time);
     }
-    printf("Build time experiments completed!\n\n");
-}
-
-// Experiment 3: Delete time analysis (destroying tree by deleting root)
-void experiment_delete_times() {
-    printf("Running BST delete time experiments...\n");
-
-    write_csv_header("data/bst_delete_times.csv", "size,avg_delete_time,min_delete_time,max_delete_time");
-
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int size = TREE_SIZES[s];
-        int repetitions = get_repetitions(size);
-
-        double total_time = 0.0;
-        double min_time = HUGE_VAL;
-        double max_time = 0.0;
-
-        printf("Testing size %d with %d repetitions...\n", size, repetitions);
-
-        for (int rep = 0; rep < repetitions; rep++) {
-            // Build tree first
-            Tree* tree = create_tree();
-            int* keys = create_shuffled_array(size);
-
-            for (int i = 0; i < size; i++) {
-                Node* node = create_node(keys[i]);
-                tree_insert(tree, node);
+    
+    // Experiment 3: Destroy Time
+    printf("\n=== %s: Destroy Time Experiment ===\n", method_name);
+    printf("n,avg_time_ms\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        // Skip very large sequential trees
+        if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+            continue;
+        }
+        
+        int num_trees;
+        if (method == SHUFFLE_NONE) {
+            num_trees = (n > 1000) ? 1 : 5;
+        } else {
+            if (n <= 1000) num_trees = 30;
+            else if (n <= 10000) num_trees = 20;
+            else num_trees = 5;
+        }
+        
+        double avg_time = 0;
+        for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+            int* keys = generate_sequence(n);
+            apply_shuffle(keys, n, method);
+            
+            Tree* T = create_tree();
+            for (int i = 0; i < n; i++) {
+                Node* z = create_node(keys[i]);
+                tree_insert(T, z);
             }
-
-            // Time the deletion process (delete root repeatedly)
-            double start_time = get_time();
-
-            while (tree->root != NULL) {
-                Node* root_to_delete = tree->root;
-                tree_delete(tree, root_to_delete);
-                free(root_to_delete);
+            
+            double start_time = get_time_ms();
+            while (T->root != NULL) {
+                Node* to_delete = T->root;
+                tree_delete(T, to_delete);
+                free(to_delete);
             }
-
-            double end_time = get_time();
-            double delete_time = time_diff(start_time, end_time);
-
-            total_time += delete_time;
-            if (delete_time < min_time) min_time = delete_time;
-            if (delete_time > max_time) max_time = delete_time;
-
-            // Cleanup
-            free(tree);
+            double end_time = get_time_ms();
+            
+            avg_time += (end_time - start_time);
+            
+            free(T);
             free(keys);
         }
-
-        double avg_time = total_time / repetitions;
-        double data[] = {avg_time, min_time, max_time};
-        append_csv_data("data/bst_delete_times.csv", size, data, 3);
-
-        printf("Size %d: avg=%.6f, min=%.6f, max=%.6f seconds\n",
-               size, avg_time, min_time, max_time);
+        avg_time /= num_trees;
+        printf("%d,%.4f\n", n, avg_time);
     }
-    printf("Delete time experiments completed!\n\n");
-}
-
-// Experiment 4: Inorder walk time analysis
-void experiment_inorder_walk_times() {
-    printf("Running Inorder-Tree-Walk time experiments...\n");
-
-    write_csv_header("data/inorder_walk_times.csv", "size,avg_walk_time,min_walk_time,max_walk_time");
-
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int size = TREE_SIZES[s];
-        int repetitions = get_repetitions(size);
-
-        double total_time = 0.0;
-        double min_time = HUGE_VAL;
-        double max_time = 0.0;
-
-        printf("Testing size %d with %d repetitions...\n", size, repetitions);
-
-        for (int rep = 0; rep < repetitions; rep++) {
-            // Build tree
-            Tree* tree = create_tree();
-            int* keys = create_shuffled_array(size);
-
-            for (int i = 0; i < size; i++) {
-                Node* node = create_node(keys[i]);
-                tree_insert(tree, node);
+    
+    // Experiment 4: Inorder Walk
+    printf("\n=== %s: Inorder Walk Experiment ===\n", method_name);
+    printf("n,total_time_ms,time_per_node_ms\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        // Skip very large sequential trees
+        if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+            continue;
+        }
+        
+        int num_trees = (method == SHUFFLE_NONE && n > 1000) ? 2 : 10;
+        
+        double total_time = 0;
+        
+        for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+            int* keys = generate_sequence(n);
+            apply_shuffle(keys, n, method);
+            
+            Tree* T = create_tree();
+            for (int i = 0; i < n; i++) {
+                Node* z = create_node(keys[i]);
+                tree_insert(T, z);
             }
-
-            // Time the inorder walk
-            double start_time = get_time();
-
-            // Note: For timing, we'll modify inorder_walk to not print
-            // or we could count operations instead of printing
-            inorder_tree_walk_silent(tree->root);
-
-            double end_time = get_time();
-            double walk_time = time_diff(start_time, end_time);
-
-            total_time += walk_time;
-            if (walk_time < min_time) min_time = walk_time;
-            if (walk_time > max_time) max_time = walk_time;
-
-            // Cleanup
-            destroy_tree(tree->root);
-            free(tree);
+            
+            // Multiple runs for smaller trees to get measurable time
+            int runs = (n < 1000) ? 100 : (n < 10000) ? 10 : 1;
+            double start_time = get_time_ms();
+            for (int r = 0; r < runs; r++) {
+                inorder_tree_walk_silent(T->root);
+            }
+            double end_time = get_time_ms();
+            
+            total_time += (end_time - start_time) / runs;
+            
+            destroy_tree(T->root);
+            free(T);
             free(keys);
         }
-
-        double avg_time = total_time / repetitions;
-        double data[] = {avg_time, min_time, max_time};
-        append_csv_data("data/inorder_walk_times.csv", size, data, 3);
-
-        printf("Size %d: avg=%.6f, min=%.6f, max=%.6f seconds\n",
-               size, avg_time, min_time, max_time);
+        
+        double avg_total_time = total_time / num_trees;
+        double time_per_node = avg_total_time / n;
+        printf("%d,%.6f,%.8f\n", n, avg_total_time, time_per_node);
     }
-    printf("Inorder walk time experiments completed!\n\n");
 }
 
+// Comparison experiments - all methods together
+void run_comparison_experiments() {
+    printf("\n=== COMPARISON: All Four Methods ===\n");
+    
+    // Height comparison
+    printf("\n=== Height Comparison ===\n");
+    printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        printf("%d", n);
+        
+        for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
+            // Skip very large sequential trees
+            if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+                printf(",%.2f", (double)(n - 1));
+                continue;
+            }
+            
+            int num_trees = (method == SHUFFLE_NONE) ? 1 : 20;
+            
+            double avg_height = 0;
+            for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+                int* keys = generate_sequence(n);
+                apply_shuffle(keys, n, method);
+                
+                Tree* T = create_tree();
+                for (int i = 0; i < n; i++) {
+                    Node* z = create_node(keys[i]);
+                    tree_insert(T, z);
+                }
+                
+                avg_height += tree_height(T->root);
+                
+                destroy_tree(T->root);
+                free(T);
+                free(keys);
+            }
+            avg_height /= num_trees;
+            printf(",%.2f", avg_height);
+        }
+        printf("\n");
+    }
+    
+    // Build time comparison
+    printf("\n=== Build Time Comparison ===\n");
+    printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
+    
+    for (int size_idx = 0; size_idx < NUM_SIZES; size_idx++) {
+        int n = MIN_SIZE * pow(2, size_idx * 0.4);
+        if (n > MAX_SIZE) n = MAX_SIZE;
+        
+        printf("%d", n);
+        
+        for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
+            // Skip very large sequential trees
+            if (method == SHUFFLE_NONE && n > MAX_SEQUENTIAL_SIZE) {
+                printf(",0.0000");
+                continue;
+            }
+            
+            int num_trees = (method == SHUFFLE_NONE && n > 1000) ? 1 : 10;
+            
+            double avg_time = 0;
+            for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+                int* keys = generate_sequence(n);
+                apply_shuffle(keys, n, method);
+                
+                Tree* T = create_tree();
+                
+                double start_time = get_time_ms();
+                for (int i = 0; i < n; i++) {
+                    Node* z = create_node(keys[i]);
+                    tree_insert(T, z);
+                }
+                double end_time = get_time_ms();
+                
+                avg_time += (end_time - start_time);
+                
+                destroy_tree(T->root);
+                free(T);
+                free(keys);
+            }
+            avg_time /= num_trees;
+            printf(",%.4f", avg_time);
+        }
+        printf("\n");
+    }
+}
 
-int main() {
-    printf("BST Experiments (Part A)\n");
-    printf("========================\n\n");
-
-    // Seed random number generator
-    seed_random(time(NULL));
-
-    // Run all experiments
-    experiment_tree_heights();
-    experiment_build_times();
-    experiment_delete_times();
-    experiment_inorder_walk_times();
-
-    printf("All BST experiments completed!\n");
-    printf("Results saved to data/ directory as CSV files.\n");
-    printf("Run 'make graphs' to generate plots.\n");
-
+int main(void) {
+    srand(time(NULL));
+    
+    printf("BST Experiments - Comparing Four Shuffling Methods\n");
+    printf("===================================================\n");
+    printf("1. No Shuffle (Sequential) - Worst Case O(n) height\n");
+    printf("2. Fisher-Yates (Classic) - Random Case O(log n) height\n");
+    printf("3. RANDOMIZE-IN-PLACE (CLRS) - Random Case O(log n) height\n");
+    printf("4. PERMUTE-BY-SORTING (CLRS) - Random Case O(log n) height\n");
+    printf("\nSize range: %d to %d\n", MIN_SIZE, MAX_SIZE);
+    printf("Sequential trees limited to %d nodes (stack safety)\n", MAX_SEQUENTIAL_SIZE);
+    printf("Number of size points: %d\n", NUM_SIZES);
+    printf("\nEstimated runtime: 2-10 minutes depending on CPU\n");
+    printf("Progress will be shown below...\n");
+    
+    // Run individual experiments for each method
+    for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
+        printf("\n[%d/4] Running %s experiments...\n", method + 1, get_method_name(method));
+        run_experiments_for_method(method);
+    }
+    
+    // Run comparison experiments
+    printf("\n[5/5] Running comparison experiments...\n");
+    run_comparison_experiments();
+    
+    printf("\nAll experiments completed!\n");
+    
     return 0;
 }

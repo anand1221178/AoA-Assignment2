@@ -1,126 +1,122 @@
-# Binary Search Trees and Order-Statistic Trees Assignment
+# Binary Search Trees and Order-statistic Trees Assignment
 
-## Project Structure
+## Part A: Binary Search Trees
 
+### Implementation
+This project implements Binary Search Trees (BST) following the algorithms from CLRS Chapter 12.
+
+### Files Structure
 ```
-.
-├── README.md           # This file
-├── Makefile           # Cross-platform build system
-├── include/           # Header files
-│   ├── bst.h         # Binary Search Tree declarations
-│   ├── os_tree.h     # Order-Statistic Tree declarations
-│   └── utils.h       # Utility functions (timing, random, etc.)
-├── src/              # Implementation files
-│   ├── bst.c         # BST implementation
-│   ├── os_tree.c     # OS-Tree implementation
-│   ├── utils.c       # Utility implementations
-│   └── main.c        # Main driver program
-├── experiments/      # Experiment files
-│   ├── bst_experiments.c    # Part A experiments
-│   └── os_experiments.c     # Part B experiments
-├── data/             # Output CSV files (generated)
-│   ├── bst_heights.csv
-│   ├── bst_build_times.csv
-│   ├── bst_delete_times.csv
-│   ├── inorder_walk_times.csv
-│   └── os_comparison.csv
-├── scripts/          # Python scripts
-│   └── plot_graphs.py    # Graph generation script
-├── obj/              # Object files (generated)
-├── bin/              # Executables (generated)
-└── report/           # Final report and graphs
+├── include/
+│   ├── bst.h         # BST data structures and function declarations
+│   └── utils.h       # Utility functions for experiments
+├── src/
+│   ├── bst.c         # BST implementation (from CLRS)
+│   ├── utils.c       # Utility functions implementation
+│   └── main.c        # Test program
+├── experiments/
+│   └── bst_experiments.c  # Part A experiments
+├── scripts/
+│   └── plot_bst.py   # Python script for generating graphs
+├── data/             # Experimental results (CSV files)
+├── graphs/           # Generated plots
+└── bin/              # Compiled executables
 
 ```
 
-## Requirements
+### Algorithms Implemented (Part A)
+1. **TREE-INSERT** - Insert a node into BST
+2. **TREE-DELETE** - Delete a node from BST  
+3. **INORDER-TREE-WALK** - Traverse tree in sorted order
+4. **TREE-SEARCH** - Search for a key
+5. **TREE-MINIMUM/MAXIMUM** - Find min/max in tree
+6. **TREE-SUCCESSOR** - Find successor of a node
+7. **TRANSPLANT** - Helper for deletion
 
-### For C code:
-- GCC or compatible C compiler
-- Standard C library (C99)
-- POSIX-compliant system (Linux/macOS) or Windows with MinGW
+### How to Build and Run
 
-### For graphing:
-- Python 3.x
-- matplotlib
-- pandas
-- numpy
+#### Prerequisites
+- GCC compiler
+- Python 3 with matplotlib (for plotting)
+- Make
 
-## Building the Project
-
-### On Linux/macOS:
+#### Quick Start
 ```bash
-make all          # Build all executables
-make run-all      # Run all experiments
-make graphs       # Generate graphs from data
+# Make the run script executable
+chmod +x run.sh
+
+# Run everything (compile, test, experiments, plots)
+./run.sh
 ```
 
-### On Windows (with MinGW):
+#### Manual Steps
 ```bash
-mingw32-make all
-mingw32-make run-all
-python scripts/plot_graphs.py
+# 1. Compile the code
+make all
+
+# 2. Run basic tests
+./bin/bst_test
+
+# 3. Run experiments
+make run_experiments
+
+# 4. Generate plots
+make plot
 ```
 
-## Running Experiments
+### Experiments
 
-### Part A - Binary Search Trees
-```bash
-make run-bst      # Run BST experiments only
-```
-This will:
-- Build BSTs with random keys
-- Measure tree heights
-- Measure build times
-- Measure deletion times
-- Test Inorder-Tree-Walk performance
+#### Experiment 1: Tree Height
+- Builds random BSTs of varying sizes (10 to 10,000 nodes)
+- Measures average height over 100 trees per size
+- Confirms O(log n) expected height for randomly built BSTs
 
-### Part B - Order-Statistic Trees
-```bash
-make run-os       # Run OS-Tree experiments only
-```
-This will:
-- Test OS-Select and OS-Rank operations
-- Compare performance with regular BST
+#### Experiment 2: Build Time
+- Measures time to build BSTs using repeated TREE-INSERT
+- Tests various tree sizes with random key insertion order
+- Confirms expected O(n log n) build time
 
-### Generate All Graphs
-```bash
-make graphs       # Create all graphs from CSV data
-```
+#### Experiment 3: Destroy Time  
+- Measures time to destroy BSTs using repeated TREE-DELETE on root
+- Tests deletion performance on various tree sizes
+- Analyzes the complexity of destroying entire trees
 
-## Implementation Notes
+#### Experiment 4: Inorder Walk Time
+- Measures runtime of INORDER-TREE-WALK
+- Confirms Θ(n) runtime complexity
+- Uses silent traversal (no printing) for accurate timing
 
-### Part A: Binary Search Trees
-- Implements Tree-Insert, Tree-Delete, and Inorder-Tree-Walk
-- Follows textbook algorithms exactly (CLRS 3rd edition, Chapter 12)
-- No external libraries or packages used
+### Results
 
-### Part B: Order-Statistic Trees
-- Augments BST nodes with size attribute
-- Implements OS-Select and OS-Rank
-- Modified Tree-Insert and Tree-Delete maintain size invariant
-- Based on BST, not Red-Black Trees
+The experiments generate:
+- **data/bst_results.csv** - Raw experimental data
+- **graphs/bst_height.png** - Height vs n plot
+- **graphs/bst_build_time.png** - Build time vs n plot  
+- **graphs/bst_destroy_time.png** - Destroy time vs n plot
+- **graphs/bst_inorder_time.png** - Inorder walk time vs n plot
 
-## Experiments Configuration
+### Key Findings
 
-Default test sizes: 100, 500, 1000, 5000, 10000, 50000, 100000 nodes
-Repetitions vary by size (more for smaller trees)
+1. **Height**: Randomly built BSTs have average height ≈ 2 log₂(n), confirming Theorem 12.4
+2. **Build Time**: O(n log n) average case for random insertion order
+3. **Destroy Time**: O(n log n) for destroying via root deletion
+4. **Inorder Walk**: Θ(n) as expected for visiting all nodes
 
-## Output
+## Part B: Order-statistic Trees
 
-All experiment results are saved as CSV files in the `data/` directory.
-Graphs are generated in the `report/` directory.
+(To be implemented in the next phase)
 
-## Cleaning Up
+### Planned Implementation
+- OS-SELECT - Select i-th smallest element
+- OS-RANK - Find rank of element
+- Modified TREE-INSERT/DELETE to maintain size attribute
 
-```bash
-make clean        # Remove object files and executables
-make clean-all    # Remove everything including data files
-```
+---
 
-## Submission Requirements
+## Author
+Anand Patel
 
-1. Source code (all .c and .h files)
-2. Document containing:
-   - All required graphs
-   - Description of experiment methodology
-   - Explanation of size attribute maintenance in OS-Trees
+## References
+- Introduction to Algorithms (3rd Edition) - Cormen, Leiserson, Rivest, Stein
+- Chapter 12: Binary Search Trees
+- Chapter 14: Augmenting Data Structures

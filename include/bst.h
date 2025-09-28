@@ -25,7 +25,7 @@ void transplant(Tree* T, Node*u , Node* v); // Replace subtree at root u with v
 Node* tree_min(Node* x); //find min at subtree x
 Node* tree_max(Node* x); // find max at subtree x
 Node* tree_search(Node* x, int key); // search for key key in subtree x
-Node* tree_successor(Node* x); //get succesor of node x
+Node* tree_successor(Node* x); // get successor of node x
 
 // mem management - ewww
 Node* create_node(int key); //allocate and make new node
@@ -35,5 +35,8 @@ void destroy_tree(Node* root); // free all nodes in tree -> recusrive
 // Additional functions needed for experiments
 int tree_height(Node* node); // calculate height of tree
 void inorder_tree_walk_silent(Node* x); // inorder walk without printing (for timing)
+
+// Test helper function
+void inorder_tree_walk_limit(Node* x, int limit); // inorder walk with output limit
 
 #endif
