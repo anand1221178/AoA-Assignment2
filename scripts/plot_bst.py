@@ -70,7 +70,13 @@ def parse_experiments(filename):
         if ',' in line and current_method and current_experiment:
             if not line.startswith('n,'):  # Skip headers
                 try:
-                    values = [float(x) for x in line.split(',')]
+                    parts = line.split(',')
+                    values = []
+                    for part in parts:
+                        if part.strip() == '':
+                            values.append(np.nan)  # Use NaN for empty values
+                        else:
+                            values.append(float(part))
                     if len(values) >= 2:  # Make sure we have valid data
                         if current_method == 'comparison':
                             experiments[current_method][current_experiment].append(values)
@@ -217,8 +223,15 @@ def plot_all_comparisons(experiments):
         if len(data) > 0:
             n_values = data[:, 0]
             for i in range(4):
-                ax2.plot(n_values, data[:, i+1], marker=markers[i], color=colors[i],
-                        markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+                times = data[:, i+1]
+                # Filter out NaN values
+                mask = ~np.isnan(times)
+                valid_n = n_values[mask]
+                valid_times = times[mask]
+                
+                if len(valid_n) > 0:
+                    ax2.plot(valid_n, valid_times, marker=markers[i], color=colors[i],
+                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
             
             ax2.set_xlabel('Number of nodes (n)')
             ax2.set_ylabel('Build Time (ms)')
