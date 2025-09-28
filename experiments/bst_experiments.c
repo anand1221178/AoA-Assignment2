@@ -51,7 +51,7 @@ int* generate_sizes(int* count) {
     
     // Use exponential growth with 1.2x multiplier
     for (int i = 0; i < NUM_SIZES && idx < NUM_SIZES; i++) {
-        int n = MIN_SIZE * pow(1.15, i);
+        int n = MIN_SIZE * pow(1.3, i);
         if (n > MAX_SIZE) {
             if (idx == 0 || sizes[idx-1] < MAX_SIZE) {
                 sizes[idx++] = MAX_SIZE;
@@ -312,6 +312,95 @@ void run_comparison_experiments() {
             }
             avg_time /= num_trees;
             printf(",%.4f", avg_time);
+        }
+        printf("\n");
+    }
+    
+    // Destroy time comparison
+    printf("\n=== Destroy Time Comparison ===\n");
+    printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
+    
+    for (int size_idx = 0; size_idx < size_count; size_idx++) {
+        int n = sizes[size_idx];
+        
+        printf("%d", n);
+        
+        for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
+            int num_trees = (method == SHUFFLE_NONE && n > 1000) ? 1 : 10;
+            
+            double avg_time = 0;
+            for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+                int* keys = generate_sequence(n);
+                apply_shuffle(keys, n, method);
+                
+                Tree* T = create_tree();
+                for (int i = 0; i < n; i++) {
+                    Node* z = create_node(keys[i]);
+                    tree_insert(T, z);
+                }
+                
+                double start_time = get_time_ms();
+                while (T->root != NULL) {
+                    Node* to_delete = T->root;
+                    tree_delete(T, to_delete);
+                    free(to_delete);
+                }
+                double end_time = get_time_ms();
+                
+                avg_time += (end_time - start_time);
+                
+                destroy_tree(T->root);
+                free(T);
+                free(keys);
+            }
+            avg_time /= num_trees;
+            printf(",%.4f", avg_time);
+        }
+        printf("\n");
+    }
+    
+    // Inorder walk comparison
+    printf("\n=== Inorder Walk Comparison ===\n");
+    printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
+    
+    for (int size_idx = 0; size_idx < size_count; size_idx++) {
+        int n = sizes[size_idx];
+        
+        printf("%d", n);
+        
+        for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
+            int num_trees = (method == SHUFFLE_NONE && n > 1000) ? 2 : 10;
+            
+            double total_time = 0;
+            
+            for (int tree_num = 0; tree_num < num_trees; tree_num++) {
+                int* keys = generate_sequence(n);
+                apply_shuffle(keys, n, method);
+                
+                Tree* T = create_tree();
+                for (int i = 0; i < n; i++) {
+                    Node* z = create_node(keys[i]);
+                    tree_insert(T, z);
+                }
+                
+                // Multiple runs for smaller trees to get measurable time
+                int runs = (n < 1000) ? 100 : 10;
+                double start_time = get_time_ms();
+                for (int r = 0; r < runs; r++) {
+                    inorder_tree_walk_silent(T->root);
+                }
+                double end_time = get_time_ms();
+                
+                total_time += (end_time - start_time) / runs;
+                
+                destroy_tree(T->root);
+                free(T);
+                free(keys);
+            }
+            
+            double avg_total_time = total_time / num_trees;
+            double time_per_node = avg_total_time / n;
+            printf(",%.6f", avg_total_time);  // Output total time for comparison
         }
         printf("\n");
     }

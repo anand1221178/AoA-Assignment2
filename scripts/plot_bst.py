@@ -130,7 +130,7 @@ def plot_individual_method(method, data, save_path):
         ax2.set_yscale('log')
         ax2.grid(True, alpha=0.3)
     
-    # Destroy time plot - FIXED
+    # Destroy time plot
     if 'destroy' in data and len(data['destroy']) > 0:
         destroy_data = np.array(data['destroy'])
         n_values = destroy_data[:, 0]
@@ -138,7 +138,7 @@ def plot_individual_method(method, data, save_path):
         
         ax3.plot(n_values, times, 'o-', markersize=6, linewidth=2, color='red')
         ax3.set_xlabel('Number of nodes (n)')
-        ax3.set_ylabel('Destroy Time (ms)')  # Fixed label
+        ax3.set_ylabel('Destroy Time (ms)')
         ax3.set_title('Destroy Time (Root Deletion)')
         ax3.set_xscale('log')
         ax3.set_yscale('log')
@@ -184,6 +184,10 @@ def plot_all_comparisons(experiments):
         print("No comparison data found")
         return
     
+    # Check what comparison data we have
+    comp_data = experiments['comparison']
+    print(f"Available comparison data: {list(comp_data.keys())}")
+    
     fig = plt.figure(figsize=(18, 12))
     
     # Colors and markers for each method
@@ -194,35 +198,38 @@ def plot_all_comparisons(experiments):
     
     # Height comparison
     ax1 = plt.subplot(2, 3, 1)
-    if 'height_comp' in experiments['comparison']:
+    if 'height_comp' in experiments['comparison'] and len(experiments['comparison']['height_comp']) > 0:
         data = np.array(experiments['comparison']['height_comp'])
-        if len(data) > 0:
-            n_values = data[:, 0]
-            for i in range(4):
+        n_values = data[:, 0]
+        for i in range(4):
+            if i+1 < data.shape[1]:  # Check if column exists
                 ax1.plot(n_values, data[:, i+1], marker=markers[i], color=colors[i], 
                         markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
-            
-            # Add theoretical lines
-            theoretical_random = 2 * np.log2(n_values)
-            theoretical_worst = n_values - 1
-            ax1.plot(n_values, theoretical_random, 'b:', alpha=0.3, linewidth=1)
-            ax1.plot(n_values, theoretical_worst, 'r:', alpha=0.3, linewidth=1)
-            
-            ax1.set_xlabel('Number of nodes (n)')
-            ax1.set_ylabel('Average Height')
-            ax1.set_title('Height Comparison', fontweight='bold')
-            ax1.set_xscale('log')
-            ax1.set_yscale('log')
-            ax1.grid(True, alpha=0.3)
-            ax1.legend(fontsize=8, loc='upper left')
+        
+        # Add theoretical lines
+        theoretical_random = 2 * np.log2(n_values)
+        theoretical_worst = n_values - 1
+        ax1.plot(n_values, theoretical_random, 'b:', alpha=0.3, linewidth=1)
+        ax1.plot(n_values, theoretical_worst, 'r:', alpha=0.3, linewidth=1)
+        
+        ax1.set_xlabel('Number of nodes (n)')
+        ax1.set_ylabel('Average Height')
+        ax1.set_title('Height Comparison', fontweight='bold')
+        ax1.set_xscale('log')
+        ax1.set_yscale('log')
+        ax1.grid(True, alpha=0.3)
+        ax1.legend(fontsize=8, loc='upper left')
+    else:
+        ax1.text(0.5, 0.5, 'No height comparison data', ha='center', va='center', transform=ax1.transAxes)
+        ax1.set_title('Height Comparison', fontweight='bold')
     
     # Build time comparison
     ax2 = plt.subplot(2, 3, 2)
-    if 'build_comp' in experiments['comparison']:
+    if 'build_comp' in experiments['comparison'] and len(experiments['comparison']['build_comp']) > 0:
         data = np.array(experiments['comparison']['build_comp'])
-        if len(data) > 0:
-            n_values = data[:, 0]
-            for i in range(4):
+        n_values = data[:, 0]
+        for i in range(4):
+            if i+1 < data.shape[1]:  # Check if column exists
                 times = data[:, i+1]
                 # Filter out NaN values
                 mask = ~np.isnan(times)
@@ -232,87 +239,128 @@ def plot_all_comparisons(experiments):
                 if len(valid_n) > 0:
                     ax2.plot(valid_n, valid_times, marker=markers[i], color=colors[i],
                             markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
-            
-            ax2.set_xlabel('Number of nodes (n)')
-            ax2.set_ylabel('Build Time (ms)')
-            ax2.set_title('Build Time Comparison', fontweight='bold')
-            ax2.set_xscale('log')
-            ax2.set_yscale('log')
-            ax2.grid(True, alpha=0.3)
-            ax2.legend(fontsize=8, loc='upper left')
+        
+        ax2.set_xlabel('Number of nodes (n)')
+        ax2.set_ylabel('Build Time (ms)')
+        ax2.set_title('Build Time Comparison', fontweight='bold')
+        ax2.set_xscale('log')
+        ax2.set_yscale('log')
+        ax2.grid(True, alpha=0.3)
+        ax2.legend(fontsize=8, loc='upper left')
+    else:
+        ax2.text(0.5, 0.5, 'No build time comparison data', ha='center', va='center', transform=ax2.transAxes)
+        ax2.set_title('Build Time Comparison', fontweight='bold')
     
     # Destroy time comparison
     ax3 = plt.subplot(2, 3, 3)
-    if 'destroy_comp' in experiments['comparison']:
+    if 'destroy_comp' in experiments['comparison'] and len(experiments['comparison']['destroy_comp']) > 0:
         data = np.array(experiments['comparison']['destroy_comp'])
-        if len(data) > 0:
-            n_values = data[:, 0]
-            for i in range(4):
-                ax3.plot(n_values, data[:, i+1], marker=markers[i], color=colors[i],
-                        markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
-            
-            ax3.set_xlabel('Number of nodes (n)')
-            ax3.set_ylabel('Destroy Time (ms)')
-            ax3.set_title('Destroy Time Comparison', fontweight='bold')
-            ax3.set_xscale('log')
-            ax3.set_yscale('log')
-            ax3.grid(True, alpha=0.3)
-            ax3.legend(fontsize=8, loc='upper left')
+        n_values = data[:, 0]
+        for i in range(4):
+            if i+1 < data.shape[1]:  # Check if column exists
+                times = data[:, i+1]
+                # Filter out NaN values
+                mask = ~np.isnan(times)
+                valid_n = n_values[mask]
+                valid_times = times[mask]
+                
+                if len(valid_n) > 0:
+                    ax3.plot(valid_n, valid_times, marker=markers[i], color=colors[i],
+                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+        
+        ax3.set_xlabel('Number of nodes (n)')
+        ax3.set_ylabel('Destroy Time (ms)')
+        ax3.set_title('Destroy Time Comparison', fontweight='bold')
+        ax3.set_xscale('log')
+        ax3.set_yscale('log')
+        ax3.grid(True, alpha=0.3)
+        ax3.legend(fontsize=8, loc='upper left')
+    else:
+        ax3.text(0.5, 0.5, 'No destroy time comparison data', ha='center', va='center', transform=ax3.transAxes)
+        ax3.set_title('Destroy Time Comparison', fontweight='bold')
     
     # Inorder walk comparison - show TOTAL TIME for Θ(n)
     ax4 = plt.subplot(2, 3, 4)
-    if 'inorder_comp' in experiments['comparison']:
+    if 'inorder_comp' in experiments['comparison'] and len(experiments['comparison']['inorder_comp']) > 0:
         data = np.array(experiments['comparison']['inorder_comp'])
-        if len(data) > 0:
-            n_values = data[:, 0]
-            
-            # Check format and calculate total times
-            if data.shape[1] > 5:  # New format with both total and per-node
-                for i in range(4):
+        n_values = data[:, 0]
+        
+        # Check format and calculate total times
+        if data.shape[1] > 5:  # New format with both total and per-node
+            for i in range(4):
+                if i*2 + 1 < data.shape[1]:  # Check if column exists
                     total_times = data[:, i*2 + 1]  # Total time columns
-                    ax4.plot(n_values, total_times, marker=markers[i], color=colors[i],
-                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
-            else:  # Old format with time per node
-                for i in range(4):
+                    # Filter out NaN values
+                    mask = ~np.isnan(total_times)
+                    valid_n = n_values[mask]
+                    valid_times = total_times[mask]
+                    
+                    if len(valid_n) > 0:
+                        ax4.plot(valid_n, valid_times, marker=markers[i], color=colors[i],
+                                markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+        else:  # Old format with time per node
+            for i in range(4):
+                if i+1 < data.shape[1]:  # Check if column exists
                     time_per_node = data[:, i+1]
                     total_times = time_per_node * n_values  # Calculate total time
-                    ax4.plot(n_values, total_times, marker=markers[i], color=colors[i],
-                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
-            
-            # Add a reference line showing linear growth
-            reference_line = n_values * np.mean(data[:, 2] * 1000)  # Scale appropriately
+                    # Filter out NaN values
+                    mask = ~np.isnan(total_times)
+                    valid_n = n_values[mask]
+                    valid_times = total_times[mask]
+                    
+                    if len(valid_n) > 0:
+                        ax4.plot(valid_n, valid_times, marker=markers[i], color=colors[i],
+                                markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+        
+        # Add a reference line showing linear growth if we have data
+        if len(n_values) > 0 and data.shape[1] > 2:
+            reference_line = n_values * np.nanmean(data[:, 2]) * 1000  # Scale appropriately
             ax4.plot(n_values, reference_line, 'k:', alpha=0.3, label='Linear (Θ(n))')
-            
-            ax4.set_xlabel('Number of nodes (n)')
-            ax4.set_ylabel('Total Walk Time (ms)')
-            ax4.set_title('Inorder Walk - Θ(n) Confirmation', fontweight='bold')
-            ax4.grid(True, alpha=0.3)
-            ax4.legend(fontsize=8)
+        
+        ax4.set_xlabel('Number of nodes (n)')
+        ax4.set_ylabel('Total Walk Time (ms)')
+        ax4.set_title('Inorder Walk - Θ(n) Confirmation', fontweight='bold')
+        ax4.grid(True, alpha=0.3)
+        ax4.legend(fontsize=8)
+    else:
+        ax4.text(0.5, 0.5, 'No inorder walk comparison data', ha='center', va='center', transform=ax4.transAxes)
+        ax4.set_title('Inorder Walk - Θ(n) Confirmation', fontweight='bold')
     
     # Performance ratios (worst case vs random cases)
     ax5 = plt.subplot(2, 3, 5)
-    if 'height_comp' in experiments['comparison']:
+    if 'height_comp' in experiments['comparison'] and len(experiments['comparison']['height_comp']) > 0:
         data = np.array(experiments['comparison']['height_comp'])
-        if len(data) > 0:
-            n_values = data[:, 0]
-            # Calculate ratios: Sequential / Random methods
-            for i in range(1, 4):
+        n_values = data[:, 0]
+        # Calculate ratios: Sequential / Random methods
+        for i in range(1, 4):
+            if i+1 < data.shape[1]:  # Check if column exists
                 ratio = data[:, 1] / data[:, i+1]  # NoShuffle / Random method
-                ax5.plot(n_values, ratio, marker=markers[i], label=f'Sequential/{methods[i]}', 
-                        markersize=5, alpha=0.8, linewidth=2)
-            
-            ax5.set_xlabel('Number of nodes (n)')
-            ax5.set_ylabel('Height Ratio')
-            ax5.set_title('Height Improvement Ratio', fontweight='bold')
-            ax5.set_xscale('log')
-            ax5.grid(True, alpha=0.3)
-            ax5.legend(fontsize=8)
+                # Filter out NaN/Inf values
+                mask = np.isfinite(ratio)
+                valid_n = n_values[mask]
+                valid_ratio = ratio[mask]
+                
+                if len(valid_n) > 0:
+                    ax5.plot(valid_n, valid_ratio, marker=markers[i], label=f'Sequential/{methods[i]}', 
+                            markersize=5, alpha=0.8, linewidth=2)
+        
+        ax5.set_xlabel('Number of nodes (n)')
+        ax5.set_ylabel('Height Ratio')
+        ax5.set_title('Height Improvement Ratio', fontweight='bold')
+        ax5.set_xscale('log')
+        ax5.grid(True, alpha=0.3)
+        ax5.legend(fontsize=8)
+    else:
+        ax5.text(0.5, 0.5, 'No data for ratio calculation', ha='center', va='center', transform=ax5.transAxes)
+        ax5.set_title('Height Improvement Ratio', fontweight='bold')
     
     # Summary statistics table
     ax6 = plt.subplot(2, 3, 6)
     ax6.axis('off')
     
-    if 'height_comp' in experiments['comparison'] and 'build_comp' in experiments['comparison']:
+    if ('height_comp' in experiments['comparison'] and len(experiments['comparison']['height_comp']) > 0 and
+        'build_comp' in experiments['comparison'] and len(experiments['comparison']['build_comp']) > 0):
+        
         height_data = np.array(experiments['comparison']['height_comp'])
         build_data = np.array(experiments['comparison']['build_comp'])
         
@@ -327,16 +375,26 @@ def plot_all_comparisons(experiments):
         summary_text += "-"*40 + "\n"
         
         for i, method in enumerate(methods):
-            summary_text += f"{method:<20} {last_row_height[i]:>6.1f}    {last_row_build[i]:>8.2f}\n"
+            if i < len(last_row_height) and i < len(last_row_build):
+                if not np.isnan(last_row_height[i]) and not np.isnan(last_row_build[i]):
+                    summary_text += f"{method:<20} {last_row_height[i]:>6.1f}    {last_row_build[i]:>8.2f}\n"
+                else:
+                    summary_text += f"{method:<20} {'N/A':>6}    {'N/A':>8}\n"
         
         summary_text += "\n" + "="*40 + "\n"
         summary_text += "Height Improvement vs Sequential:\n"
-        for i in range(1, 4):
-            improvement = last_row_height[0] / last_row_height[i]
-            summary_text += f"  {methods[i]}: {improvement:.1f}x\n"
+        for i in range(1, min(4, len(last_row_height))):
+            if not np.isnan(last_row_height[0]) and not np.isnan(last_row_height[i]):
+                improvement = last_row_height[0] / last_row_height[i]
+                summary_text += f"  {methods[i]}: {improvement:.1f}x\n"
+            else:
+                summary_text += f"  {methods[i]}: N/A\n"
         
         ax6.text(0.1, 0.9, summary_text, transform=ax6.transAxes, 
                 fontfamily='monospace', fontsize=10, verticalalignment='top')
+    else:
+        ax6.text(0.5, 0.5, 'Insufficient data for summary', ha='center', va='center', 
+                transform=ax6.transAxes)
     
     plt.suptitle('BST Performance Comparison - All Four Methods', fontsize=16, fontweight='bold')
     plt.tight_layout()
