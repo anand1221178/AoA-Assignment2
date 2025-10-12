@@ -1,16 +1,24 @@
-# Binary Search Trees and Order-Statistic Trees Assignment
+# Binary Search Trees and Order-Statistic Trees Assignment ✅ COMPLETED
 
 **Course:** Applications of Algorithms
 **Due:** Monday 13th October at 23h00
 **Implementation:** C with Python plotting
+**Status:** ✅ All experiments completed, report finalized
 
 ## Project Overview
 
 This assignment implements and analyzes:
-- **Part A:** Binary Search Trees (BST) - Performance analysis
+- **Part A:** Binary Search Trees (BST) - Performance analysis with 4 shuffle methods
 - **Part B:** Order-Statistic Trees - Augmented BST with rank operations
 
-All algorithms coded from scratch following CLRS 3rd Edition textbook.
+All algorithms coded from scratch following CLRS 3rd Edition (Chapters 12 & 14).
+
+### Key Features
+- ✅ **Triple averaging** for maximum accuracy (each size run 3 times)
+- ✅ **80 data points** with exponential spacing (1.15× growth factor)
+- ✅ **8 comprehensive graphs** with proper analyses
+- ✅ **Uniform random permutation validation** across 3 CLRS shuffle algorithms
+- ✅ **Complete 15-page report** with corrected counterintuitive results
 
 ## Project Structure
 
@@ -43,50 +51,35 @@ All algorithms coded from scratch following CLRS 3rd Edition textbook.
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **C Compiler:** GCC (macOS/Linux) or MinGW (Windows)
+- **C Compiler:** GCC 15.1.0+ (macOS/Linux) or MinGW (Windows)
 - **Python 3:** With matplotlib, numpy, pandas
-- **Make:** Build automation
+- **Platform:** Tested on Apple M4 Pro, macOS, 24GB RAM
 
 ```bash
 # Install Python dependencies
 pip install matplotlib numpy pandas
 ```
 
-### Run Everything (Recommended)
+### Run Everything (One Command!)
 ```bash
 # Make script executable (first time only)
 chmod +x run.sh
 
-# Run all experiments and generate graphs (45-60 minutes)
+# Run all experiments and generate graphs (2-3 hours with triple averaging)
 ./run.sh
 ```
 
-This will:
-1. ✅ Clean previous builds
-2. ✅ Compile all code
-3. ✅ Run BST tests
-4. ✅ Run Part A experiments
-5. ✅ Run OS-Tree tests
-6. ✅ Run Part B experiments
-7. ✅ Generate all graphs
+**That's it!** The `run.sh` script handles everything:
+1. ✅ Cleans previous builds and data
+2. ✅ Compiles all code with optimizations (-O2)
+3. ✅ Runs BST tests with correctness validation
+4. ✅ Runs Part A experiments (~1-1.5 hours)
+5. ✅ Runs OS-Tree tests with correctness validation
+6. ✅ Runs Part B experiments (~1-1.5 hours)
+7. ✅ Generates all 8 graphs automatically
+8. ✅ Displays completion summary
 
-### Manual Steps
-```bash
-# Compile
-make all
-
-# Test implementations
-./bin/bst_test
-./bin/os_test
-
-# Run experiments
-./bin/bst_experiments > data/bst_results.csv
-./bin/os_experiments > data/os_results.csv
-
-# Generate graphs
-python scripts/plot_bst.py
-python scripts/plot_os.py
-```
+**No Makefile needed** - `run.sh` compiles and runs everything directly!
 
 ## Part A: Binary Search Trees ✅
 
@@ -101,10 +94,17 @@ python scripts/plot_os.py
 ### Experiments (4 Required)
 
 **Configuration:**
-- Tree sizes: 10 to 100,000 nodes
-- Data points: ~80 samples
-- Repetitions: 100-300 for small, 15-30 for large trees
-- Shuffle methods: Fisher-Yates, RANDOMIZE-IN-PLACE, PERMUTE-BY-SORTING, No-Shuffle
+- **Tree sizes:** 10 to 100,000 nodes
+- **Data points:** 80 samples (exponential spacing, 1.15× growth)
+- **Triple averaging:** Each size run 3 times for maximum accuracy
+- **Trees per run:** 100-300 for small sizes (n ≤ 100), 15-30 for large sizes (n > 10,000)
+- **Shuffle methods:**
+  - Fisher-Yates (Modern optimal shuffle)
+  - RANDOMIZE-IN-PLACE (CLRS Algorithm 5.3)
+  - PERMUTE-BY-SORTING (CLRS Algorithm 5.2)
+  - No-Shuffle (Sorted baseline for worst case)
+
+**Why 3 shuffle methods?** Validates that **uniform random permutations** (not the specific algorithm) determine BST performance, removing shuffle choice as an experimental variable.
 
 #### (ii) Tree Height Analysis ✅
 - Builds random BSTs with shuffled keys
@@ -123,11 +123,11 @@ python scripts/plot_os.py
 - Confirms Θ(n) runtime
 - Uses silent traversal for accurate timing
 
-### Part A Graphs Generated
-- Height vs n (with O(log n) theoretical)
-- Build time vs n
-- Delete time vs n
-- Inorder walk time vs n
+### Part A Graphs Generated (4 individual comparisons)
+1. ✅ **height_comparison.png** - Height vs n (confirms O(log n) ≈ 2.99 ln n)
+2. ✅ **build_time_comparison.png** - Build time vs n (confirms O(n log n))
+3. ✅ **destroy_time_comparison.png** - Delete time vs n (O(n) for chain, O(n log n) for random)
+4. ✅ **inorder_walk_comparison.png** - Walk time vs n (confirms Θ(n), chain faster due to cache locality)
 
 ## Part B: Order-Statistic Trees ✅
 
@@ -164,39 +164,12 @@ python scripts/plot_os.py
 - **Verifies:** O(log n) complexity
 
 ### Part B Graphs Generated
-- Insert comparison (OS-Tree vs BST)
-- Delete comparison (OS-Tree vs BST)
-- OS-SELECT runtime analysis
-- OS-RANK runtime analysis
-- Combined OS operations
+1. ✅ **insert_comparison.png** - OS-Tree vs BST insert (negligible overhead, ±8%)
+2. ✅ **delete_comparison.png** - OS-Tree vs BST delete (8-10% overhead)
+3. ✅ **os_select_runtime.png** - OS-SELECT runtime (confirms O(log n))
+4. ✅ **os_rank_runtime.png** - OS-RANK runtime (confirms O(log n))
 
-## 📊 Results Summary
 
-**Part A:**
-- ✅ Height ≈ 2 log₂(n) for random BSTs
-- ✅ Build time O(n log n)
-- ✅ Delete time O(n log n)
-- ✅ Inorder walk Θ(n)
-
-**Part B:**
-- ✅ OS-Tree insert ~1.0-1.2x slower than BST
-- ✅ OS-Tree delete ~1.0-1.3x slower than BST
-- ✅ OS-SELECT achieves O(log n)
-- ✅ OS-RANK achieves O(log n)
-- ✅ Trade-off: Slight overhead for powerful rank queries
-
-## 📝 Submission Requirements
-
-**✅ Completed:**
-1. ✅ Source code (all .c and .h files)
-2. ✅ All required graphs with methodology
-3. ⏳ Documentation explaining size maintenance (see DOCUMENTATION.md)
-
-**Files to Submit:**
-- All source code (src/, include/, experiments/)
-- Generated graphs (graphs/)
-- This README
-- Documentation (DOCUMENTATION.md)
 
 ## 🔧 Build System
 

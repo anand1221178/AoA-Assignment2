@@ -89,9 +89,9 @@ if insert_data:
     ax2.set_xscale('log')
 
     plt.tight_layout()
-    plt.savefig('graphs/os_insert_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('graphs/insert_comparison.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("✓ Saved: graphs/os_insert_comparison.png")
+    print("✓ Saved: graphs/insert_comparison.png")
 
 # Graph 2: DELETE Time Comparison (OS-Tree vs BST)
 print("Creating DELETE comparison graph...")
@@ -127,9 +127,9 @@ if delete_data:
     ax2.set_xscale('log')
 
     plt.tight_layout()
-    plt.savefig('graphs/os_delete_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('graphs/delete_comparison.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("✓ Saved: graphs/os_delete_comparison.png")
+    print("✓ Saved: graphs/delete_comparison.png")
 
 # Graph 3: OS-SELECT Runtime
 print("Creating OS-SELECT runtime graph...")

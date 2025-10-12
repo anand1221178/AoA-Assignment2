@@ -58,75 +58,74 @@ void transplant(Tree* T, Node* u, Node* v) {
 }
 
 void tree_delete(Tree* T, Node* z) {
-    if (z->left == NULL)                    // Case 1: z has no left child
-        transplant(T, z, z->right);         // Replace z with its right child
-    else if (z->right == NULL)              // Case 2: z has no right child
-        transplant(T, z, z->left);          // Replace z with its left child
-    else {                                  // Case 3: z has two children
-        Node* y = tree_min(z->right);   // Find successor (min in right subtree)
-        if (y->p != z) {                    // If successor is not direct child
-            transplant(T, y, y->right);     // Replace y with its right child
-            y->right = z->right;            // Take over z's right subtree
-            y->right->p = y;                // Update parent pointer
+    if (z->left == NULL)                    
+        transplant(T, z, z->right);         
+    else if (z->right == NULL)              
+        transplant(T, z, z->left);          
+    else {                                  
+        Node* y = tree_min(z->right);  
+        if (y->p != z) {                    
+            transplant(T, y, y->right);     
+            y->right = z->right;            
+            y->right->p = y;                
         }
-        transplant(T, z, y);                // Replace z with y
-        y->left = z->left;                  // Take over z's left subtree
-        y->left->p = y;                     // Update parent pointer
+        transplant(T, z, y);                
+        y->left = z->left;                  
+        y->left->p = y;                    
     }
-    // TODO: Actual memory freeing should be done after this function
 }
 
-// INORDER-TREE-WALK(x) - Exactly from textbook
+
 void inorder_tree_walk(Node* x) {
-    if (x != NULL) {                    // Line 1: if x ≠ NIL
-        inorder_tree_walk(x->left);     // Line 2: INORDER-TREE-WALK(x.left)
-        printf("%d ", x->key);          // Line 3: print x.key
-        inorder_tree_walk(x->right);    // Line 4: INORDER-TREE-WALK(x.right)
+    if (x != NULL) {                    
+        inorder_tree_walk(x->left);   
+        printf("%d ", x->key);         
+        inorder_tree_walk(x->right);   
     }
 }
 
-// TREE-MINIMUM(x) - Find node with minimum key
+
 Node* tree_min(Node* x) {
     while (x->left != NULL)    // Keep going left
         x = x->left;           // Move to left child
-    return x;                  // Return leftmost node (minimum)
+    return x;                  // Return leftmost 
 }
 
-// TREE-MAXIMUM(x) - Find node with maximum key
+
 Node* tree_max(Node* x) {
     while (x->right != NULL)   // Keep going right
         x = x->right;          // Move to right child
-    return x;                  // Return rightmost node (maximum)
+    return x;                  // Return rightmost 
 }
 
-// TREE-SEARCH(x, k) - Search for key k
+
 Node* tree_search(Node* x, int k) {
-    if (x == NULL || k == x->key)   // Base case: not found or found
-        return x;                    // Return NULL or found node
-    if (k < x->key)                  // If k less than current key
-        return tree_search(x->left, k);  // Search left subtree
-    else                             // If k greater than current key
-        return tree_search(x->right, k); // Search right subtree
+    if (x == NULL || k == x->key)  
+        return x;                    
+    if (k < x->key)                 
+        return tree_search(x->left, k);  
+    else                             
+        return tree_search(x->right, k);
 }
 
-// TREE-SUCCESSOR(x) - Find successor of node x
+
 Node* tree_successor(Node* x) {
-    if (x->right != NULL)                  // If right subtree exists
-        return tree_min(x->right);     // Successor is min in right subtree
-    Node* y = x->p;                        // Start with parent
-    while (y != NULL && x == y->right) {   // Go up until we turn left
-        x = y;                             // Move up
-        y = y->p;                          // Move to parent
+    if (x->right != NULL)                 
+        return tree_min(x->right);     
+    Node* y = x->p;                        
+    while (y != NULL && x == y->right) {  
+        x = y;                            
+        y = y->p;                          
     }
-    return y;                              // Return successor (or NULL)
+    return y;                              
 }
 
-// Recursively free all nodes in tree
+// Recursively free all nodes
 void destroy_tree(Node* root) {
-    if (root != NULL) {              // If node exists
-        destroy_tree(root->left);    // First destroy left subtree
-        destroy_tree(root->right);   // Then destroy right subtree
-        free(root);                  // Finally free this node
+    if (root != NULL) {              
+        destroy_tree(root->left);    
+        destroy_tree(root->right);   
+        free(root);                  
     }
 }
 
@@ -145,12 +144,12 @@ int tree_height(Node* node) {
 void inorder_tree_walk_silent(Node* x) {
     if (x != NULL) {
         inorder_tree_walk_silent(x->left);
-        volatile int temp __attribute__((unused)) = x->key;  // Access key without printing
+        volatile int temp __attribute__((unused)) = x->key;  // Access key without printing -> got this from the internet 
         inorder_tree_walk_silent(x->right);
     }
 }
 
-// Helper function for testing - inorder walk with limit
+
 void inorder_tree_walk_limit(Node* x, int limit) {
     static int count = 0;
     if (x != NULL && count < limit) {
@@ -161,5 +160,5 @@ void inorder_tree_walk_limit(Node* x, int limit) {
         }
         inorder_tree_walk_limit(x->right, limit);
     }
-    if (x == NULL) count = 0; // Reset for next call
+    if (x == NULL) count = 0; 
 }

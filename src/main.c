@@ -115,7 +115,7 @@ void test_shuffle_methods() {
     }
     printf("...\n");
     
-    // Build a tree with one of the methods (RANDOMIZE-IN-PLACE)
+
     printf("\nBuilding tree with RANDOMIZE-IN-PLACE...\n");
     Tree* T = create_tree();
     for (int i = 0; i < n; i++) {

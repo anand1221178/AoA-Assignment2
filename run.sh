@@ -13,10 +13,8 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${YELLOW}Configuration:${NC}"
 echo -e "  • Tree sizes: 10 to 100,000 nodes"
 echo -e "  • Data points: ~80 samples per experiment"
-echo -e "  • Each size run: 3 times (tripled for maximum accuracy)"
+echo -e "  • Each size run: 3 times "
 echo -e "  • Trees per run: 100-300 for small sizes, 15-30 for large sizes"
-echo -e "  • Quality: Ultra-high accuracy with triple averaging"
-echo -e "  • Estimated time: 2-3 hours total (worth it for precision!)"
 echo -e "${BLUE}========================================${NC}"
 
 # Clean and compile
@@ -46,7 +44,7 @@ fi
 echo -e "${GREEN}✓ BST tests passed!${NC}"
 
 # Run Part A experiments
-echo -e "\n${YELLOW}[4/8] Running BST experiments (this may take 1-1.5 hours)...${NC}"
+echo -e "\n${YELLOW}[4/8] Running BST experiments...${NC}"
 ./bin/bst_experiments > data/bst_results.csv
 
 if [ $? -ne 0 ]; then
@@ -70,7 +68,7 @@ fi
 echo -e "${GREEN}✓ OS-Tree tests passed!${NC}"
 
 # Run Part B experiments
-echo -e "\n${YELLOW}[6/8] Running OS-Tree experiments (this may take 1-1.5 hours)...${NC}"
+echo -e "\n${YELLOW}[6/8] Running OS-Tree experiments...${NC}"
 ./bin/os_experiments > data/os_results.csv
 
 if [ $? -ne 0 ]; then

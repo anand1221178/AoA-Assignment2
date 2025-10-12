@@ -10,7 +10,7 @@
 #define MAX_SIZE 100000
 #define NUM_SIZES 80
 
-// Generate sizes array with exponential growth
+
 int* generate_sizes(int* count) {
     int* sizes = (int*)malloc(NUM_SIZES * sizeof(int));
     int idx = 0;
@@ -30,7 +30,7 @@ int* generate_sizes(int* count) {
     return sizes;
 }
 
-// Experiment 1: Compare INSERT times (OS-Tree vs BST)
+
 void experiment_insert_comparison() {
     printf("\n=== Experiment 1: INSERT Time Comparison (OS-Tree vs BST) ===\n");
     printf("n,bst_time_ms,os_tree_time_ms,overhead_ratio\n");
@@ -42,7 +42,7 @@ void experiment_insert_comparison() {
         int n = sizes[size_idx];
         int num_trees = (n <= 100) ? 100 : (n <= 1000) ? 50 : (n <= 10000) ? 30 : 15;
 
-        // Run this size 3 times and average
+   
         double final_bst_avg = 0.0;
         double final_os_avg = 0.0;
 
@@ -54,7 +54,7 @@ void experiment_insert_comparison() {
                 int* keys = generate_sequence(n);
                 fisher_yates(keys, n);
 
-                // Time BST insertion
+                // Timeing BST insertion
                 Tree* bst_tree = create_tree();
                 double bst_start = get_time_ms();
 
@@ -66,7 +66,7 @@ void experiment_insert_comparison() {
                 double bst_end = get_time_ms();
                 bst_total += (bst_end - bst_start);
 
-                // Time OS-Tree insertion
+                // Timeing os-tree
                 OSTree* os_tree = os_create_tree();
                 double os_start = get_time_ms();
 
@@ -102,7 +102,6 @@ void experiment_insert_comparison() {
     free(sizes);
 }
 
-// Experiment 2: Compare DELETE times (OS-Tree vs BST)
 void experiment_delete_comparison() {
     printf("\n=== Experiment 2: DELETE Time Comparison (OS-Tree vs BST) ===\n");
     printf("n,bst_time_ms,os_tree_time_ms,overhead_ratio\n");
@@ -114,7 +113,7 @@ void experiment_delete_comparison() {
         int n = sizes[size_idx];
         int num_trees = (n <= 100) ? 100 : (n <= 1000) ? 50 : (n <= 10000) ? 30 : 15;
 
-        // Run this size 3 times and average
+        
         double final_bst_avg = 0.0;
         double final_os_avg = 0.0;
 
@@ -126,7 +125,7 @@ void experiment_delete_comparison() {
                 int* keys = generate_sequence(n);
                 fisher_yates(keys, n);
 
-                // Build BST and time deletion
+    
                 Tree* bst_tree = create_tree();
                 for (int i = 0; i < n; i++) {
                     Node* node = create_node(keys[i]);
@@ -142,7 +141,6 @@ void experiment_delete_comparison() {
                 double bst_end = get_time_ms();
                 bst_total += (bst_end - bst_start);
 
-                // Build OS-Tree and time deletion
                 OSTree* os_tree = os_create_tree();
                 for (int i = 0; i < n; i++) {
                     OSNode* node = os_create_node(keys[i]);
@@ -180,7 +178,7 @@ void experiment_delete_comparison() {
     free(sizes);
 }
 
-// Experiment 3: OS-SELECT runtime
+//os select
 void experiment_os_select() {
     printf("\n=== Experiment 3: OS-SELECT Runtime ===\n");
     printf("n,avg_time_ms,time_per_operation_us\n");
@@ -191,9 +189,9 @@ void experiment_os_select() {
     for (int size_idx = 0; size_idx < size_count; size_idx++) {
         int n = sizes[size_idx];
         int num_trees = (n <= 1000) ? 20 : 10;
-        int num_operations = 100;  // Number of OS-Select calls per tree
+        int num_operations = 100;  
 
-        // Run this size 3 times and average
+
         double final_avg_time = 0.0;
 
         for (int run = 0; run < 3; run++) {
@@ -203,14 +201,14 @@ void experiment_os_select() {
                 int* keys = generate_sequence(n);
                 fisher_yates(keys, n);
 
-                // Build OS-Tree
+
                 OSTree* os_tree = os_create_tree();
                 for (int i = 0; i < n; i++) {
                     OSNode* node = os_create_node(keys[i]);
                     os_tree_insert(os_tree, node);
                 }
 
-                // Time OS-Select operations
+       
                 double start = get_time_ms();
                 for (int op = 0; op < num_operations; op++) {
                     int rank = random_range(1, n);
@@ -221,7 +219,7 @@ void experiment_os_select() {
 
                 total_time += (end - start);
 
-                // Cleanup
+       
                 os_destroy_tree(os_tree->root);
                 free(os_tree);
                 free(keys);
@@ -240,7 +238,7 @@ void experiment_os_select() {
     free(sizes);
 }
 
-// Experiment 4: OS-RANK runtime
+
 void experiment_os_rank() {
     printf("\n=== Experiment 4: OS-RANK Runtime ===\n");
     printf("n,avg_time_ms,time_per_operation_us\n");
@@ -251,9 +249,9 @@ void experiment_os_rank() {
     for (int size_idx = 0; size_idx < size_count; size_idx++) {
         int n = sizes[size_idx];
         int num_trees = (n <= 1000) ? 20 : 10;
-        int num_operations = 100;  // Number of OS-Rank calls per tree
+        int num_operations = 100;  // Number of os rank calls per tree
 
-        // Run this size 3 times and average
+
         double final_avg_time = 0.0;
 
         for (int run = 0; run < 3; run++) {
@@ -263,7 +261,7 @@ void experiment_os_rank() {
                 int* keys = generate_sequence(n);
                 fisher_yates(keys, n);
 
-                // Build OS-Tree and keep node pointers
+
                 OSTree* os_tree = os_create_tree();
                 OSNode** nodes = (OSNode**)malloc(n * sizeof(OSNode*));
 
@@ -272,7 +270,7 @@ void experiment_os_rank() {
                     os_tree_insert(os_tree, nodes[i]);
                 }
 
-                // Time OS-Rank operations
+
                 double start = get_time_ms();
                 for (int op = 0; op < num_operations; op++) {
                     int idx = random_range(0, n - 1);

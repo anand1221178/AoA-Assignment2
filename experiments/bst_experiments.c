@@ -44,12 +44,12 @@ void apply_shuffle(int* keys, int n, ShuffleMethod method) {
     }
 }
 
-// Generate sizes array with good density
+// Generate sizes array
 int* generate_sizes(int* count) {
     int* sizes = (int*)malloc(NUM_SIZES * sizeof(int));
     int idx = 0;
     
-    // Use exponential growth with 1.15x multiplier for denser points
+    
     for (int i = 0; i < NUM_SIZES && idx < NUM_SIZES; i++) {
         int n = MIN_SIZE * pow(1.15, i);
         if (n > MAX_SIZE) {
@@ -71,7 +71,7 @@ void run_experiments_for_method(ShuffleMethod method) {
     int size_count;
     int* sizes = generate_sizes(&size_count);
     
-    // Experiment 1: Height
+    //1- Height
     printf("\n=== %s: Height Experiment ===\n", method_name);
     printf("n,avg_height\n");
 
@@ -87,7 +87,7 @@ void run_experiments_for_method(ShuffleMethod method) {
             else num_trees = 20;
         }
 
-        // Run this size 3 times and average
+        //3 times per run and average
         double final_avg_height = 0;
         for (int run = 0; run < 3; run++) {
             double avg_height = 0;
@@ -114,7 +114,7 @@ void run_experiments_for_method(ShuffleMethod method) {
         printf("%d,%.2f\n", n, final_avg_height);
     }
     
-    // Experiment 2: Build Time
+    //2: Build Time
     printf("\n=== %s: Build Time Experiment ===\n", method_name);
     printf("n,avg_time_ms\n");
 
@@ -130,7 +130,7 @@ void run_experiments_for_method(ShuffleMethod method) {
             else num_trees = 10;
         }
 
-        // Run this size 3 times and average
+        // Run 3 times and average
         double final_avg_time = 0;
         for (int run = 0; run < 3; run++) {
             double avg_time = 0;
@@ -160,7 +160,7 @@ void run_experiments_for_method(ShuffleMethod method) {
         printf("%d,%.4f\n", n, final_avg_time);
     }
     
-    // Experiment 3: Destroy Time
+    //3: Destroy Time
     printf("\n=== %s: Destroy Time Experiment ===\n", method_name);
     printf("n,avg_time_ms\n");
 
@@ -176,7 +176,7 @@ void run_experiments_for_method(ShuffleMethod method) {
             else num_trees = 10;
         }
 
-        // Run this size 3 times and average
+        //3 times run and averaged
         double final_avg_time = 0;
         for (int run = 0; run < 3; run++) {
             double avg_time = 0;
@@ -210,7 +210,7 @@ void run_experiments_for_method(ShuffleMethod method) {
         printf("%d,%.4f\n", n, final_avg_time);
     }
     
-    // Experiment 4: Inorder Walk
+    //4: Inorder Walk
     printf("\n=== %s: Inorder Walk Experiment ===\n", method_name);
     printf("n,total_time_ms,time_per_node_ms\n");
 
@@ -219,7 +219,7 @@ void run_experiments_for_method(ShuffleMethod method) {
 
         int num_trees = (method == SHUFFLE_NONE && n > 1000) ? 2 : 10;
 
-        // Run this size 3 times and average
+        //run 3 times and avergae
         double final_total_time = 0;
         for (int run = 0; run < 3; run++) {
             double total_time = 0;
@@ -234,7 +234,6 @@ void run_experiments_for_method(ShuffleMethod method) {
                     tree_insert(T, z);
                 }
 
-                // Multiple runs for smaller trees to get measurable time
                 int runs = (n < 1000) ? 100 : 10;
                 double start_time = get_time_ms();
                 for (int r = 0; r < runs; r++) {
@@ -260,7 +259,6 @@ void run_experiments_for_method(ShuffleMethod method) {
     free(sizes);
 }
 
-// Comparison experiments - all methods together
 void run_comparison_experiments() {
     printf("\n=== COMPARISON: All Four Methods ===\n");
     
@@ -302,7 +300,7 @@ void run_comparison_experiments() {
         printf("\n");
     }
     
-    // Build time comparison
+    // Build time timing
     printf("\n=== Build Time Comparison ===\n");
     printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
     
@@ -340,7 +338,7 @@ void run_comparison_experiments() {
         printf("\n");
     }
     
-    // Destroy time comparison
+    // Destroy time timing
     printf("\n=== Destroy Time Comparison ===\n");
     printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
     
@@ -383,7 +381,7 @@ void run_comparison_experiments() {
         printf("\n");
     }
     
-    // Inorder walk comparison
+    // Inorder walk timings
     printf("\n=== Inorder Walk Comparison ===\n");
     printf("n,no_shuffle,fisher_yates,randomize_inplace,permute_sort\n");
     
@@ -407,7 +405,7 @@ void run_comparison_experiments() {
                     tree_insert(T, z);
                 }
                 
-                // Multiple runs for smaller trees to get measurable time
+               
                 int runs = (n < 1000) ? 100 : 10;
                 double start_time = get_time_ms();
                 for (int r = 0; r < runs; r++) {
@@ -423,7 +421,7 @@ void run_comparison_experiments() {
             }
             
             double avg_total_time = total_time / num_trees;
-            printf(",%.6f", avg_total_time);  // Output total time for comparison
+            printf(",%.6f", avg_total_time);  
         }
         printf("\n");
     }
@@ -446,13 +444,13 @@ int main(void) {
     printf("\nEstimated runtime: 2-10 minutes depending on CPU\n");
     printf("Progress will be shown below...\n");
     
-    // Run individual experiments for each method
+    // individual runs
     for (ShuffleMethod method = SHUFFLE_NONE; method <= SHUFFLE_PERMUTE_SORT; method++) {
         printf("\n[%d/4] Running %s experiments...\n", method + 1, get_method_name(method));
         run_experiments_for_method(method);
     }
     
-    // Run comparison experiments
+    // comparisons
     printf("\n[5/5] Running comparison experiments...\n");
     run_comparison_experiments();
     

@@ -402,6 +402,135 @@ def plot_all_comparisons(experiments):
     print("Saved: graphs/bst_all_comparisons.png")
     plt.close()
 
+def plot_individual_comparisons(experiments):
+    """Create individual comparison plots for LaTeX report"""
+    if 'comparison' not in experiments:
+        print("No comparison data for individual plots")
+        return
+
+    comp = experiments['comparison']
+    colors = ['red', 'blue', 'green', 'orange']
+    markers = ['s', 'o', '^', 'D']
+    methods = ['No Shuffle', 'Fisher-Yates', 'RANDOMIZE-IN-PLACE', 'PERMUTE-BY-SORTING']
+    linestyles = ['-', '-', '--', '-.']
+
+    # 1. Height Comparison
+    if 'height_comp' in comp and len(comp['height_comp']) > 0:
+        plt.figure(figsize=(10, 7))
+        data = np.array(comp['height_comp'])
+        n_values = data[:, 0]
+
+        for i in range(4):
+            if i+1 < data.shape[1]:
+                plt.plot(n_values, data[:, i+1], marker=markers[i], color=colors[i],
+                        markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+
+        # Theoretical lines
+        theoretical_random = 2.99 * np.log(n_values)
+        theoretical_worst = n_values - 1
+        plt.plot(n_values, theoretical_random, 'b:', alpha=0.4, linewidth=2, label='2.99×ln(n) (theory)')
+        plt.plot(n_values, theoretical_worst, 'r:', alpha=0.4, linewidth=2, label='n-1 (worst)')
+
+        plt.xlabel('Number of nodes (n)', fontsize=12)
+        plt.ylabel('Average Height', fontsize=12)
+        plt.title('BST Height Comparison', fontsize=14, fontweight='bold')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=10, loc='upper left')
+        plt.tight_layout()
+        plt.savefig('graphs/height_comparison.png', dpi=150, bbox_inches='tight')
+        print("Saved: graphs/height_comparison.png")
+        plt.close()
+
+    # 2. Build Time Comparison
+    if 'build_comp' in comp and len(comp['build_comp']) > 0:
+        plt.figure(figsize=(10, 7))
+        data = np.array(comp['build_comp'])
+        n_values = data[:, 0]
+
+        for i in range(4):
+            if i+1 < data.shape[1]:
+                times = data[:, i+1]
+                mask = ~np.isnan(times)
+                plt.plot(n_values[mask], times[mask], marker=markers[i], color=colors[i],
+                        markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+
+        plt.xlabel('Number of nodes (n)', fontsize=12)
+        plt.ylabel('Build Time (ms)', fontsize=12)
+        plt.title('BST Build Time Comparison', fontsize=14, fontweight='bold')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=10, loc='upper left')
+        plt.tight_layout()
+        plt.savefig('graphs/build_time_comparison.png', dpi=150, bbox_inches='tight')
+        print("Saved: graphs/build_time_comparison.png")
+        plt.close()
+
+    # 3. Destroy Time Comparison
+    if 'destroy_comp' in comp and len(comp['destroy_comp']) > 0:
+        plt.figure(figsize=(10, 7))
+        data = np.array(comp['destroy_comp'])
+        n_values = data[:, 0]
+
+        for i in range(4):
+            if i+1 < data.shape[1]:
+                times = data[:, i+1]
+                mask = ~np.isnan(times)
+                plt.plot(n_values[mask], times[mask], marker=markers[i], color=colors[i],
+                        markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+
+        plt.xlabel('Number of nodes (n)', fontsize=12)
+        plt.ylabel('Destroy Time (ms)', fontsize=12)
+        plt.title('BST Delete Time Comparison', fontsize=14, fontweight='bold')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=10, loc='upper left')
+        plt.tight_layout()
+        plt.savefig('graphs/destroy_time_comparison.png', dpi=150, bbox_inches='tight')
+        print("Saved: graphs/destroy_time_comparison.png")
+        plt.close()
+
+    # 4. Inorder Walk Comparison
+    if 'inorder_comp' in comp and len(comp['inorder_comp']) > 0:
+        plt.figure(figsize=(10, 7))
+        data = np.array(comp['inorder_comp'])
+        n_values = data[:, 0]
+
+        # Handle both formats
+        if data.shape[1] > 5:  # New format with total time
+            for i in range(4):
+                if i*2 + 1 < data.shape[1]:
+                    total_times = data[:, i*2 + 1]
+                    mask = ~np.isnan(total_times)
+                    plt.plot(n_values[mask], total_times[mask], marker=markers[i], color=colors[i],
+                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+        else:  # Old format
+            for i in range(4):
+                if i+1 < data.shape[1]:
+                    time_per_node = data[:, i+1]
+                    total_times = time_per_node * n_values
+                    mask = ~np.isnan(total_times)
+                    plt.plot(n_values[mask], total_times[mask], marker=markers[i], color=colors[i],
+                            markersize=5, label=methods[i], alpha=0.8, linewidth=2, linestyle=linestyles[i])
+
+        # Linear reference
+        if len(n_values) > 0:
+            linear_ref = n_values * 0.002
+            plt.plot(n_values, linear_ref, 'k:', alpha=0.3, linewidth=2, label='Linear Θ(n)')
+
+        plt.xlabel('Number of nodes (n)', fontsize=12)
+        plt.ylabel('Total Walk Time (ms)', fontsize=12)
+        plt.title('Inorder Walk Time Comparison - Θ(n) Confirmation', fontsize=14, fontweight='bold')
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=10)
+        plt.tight_layout()
+        plt.savefig('graphs/inorder_walk_comparison.png', dpi=150, bbox_inches='tight')
+        print("Saved: graphs/inorder_walk_comparison.png")
+        plt.close()
+
 def main():
     """Main function to generate all plots"""
     import os
@@ -440,6 +569,9 @@ def main():
         # Plot comparison graphs
         if 'comparison' in experiments:
             print(f"Comparison data found with keys: {list(experiments['comparison'].keys())}")
+            print("\nGenerating report-ready comparison graphs...")
+            plot_individual_comparisons(experiments)
+            print("\nGenerating combined comparison graph...")
             plot_all_comparisons(experiments)
         else:
             print("No comparison data found - check if comparison section exists in data file")

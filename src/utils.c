@@ -3,7 +3,6 @@
 #include <time.h>
 #include "../include/utils.h"
 
-// Comparison function for qsort (used in PERMUTE-BY-SORTING)
 typedef struct {
     int value;
     int priority;
@@ -15,14 +14,13 @@ int compare_pairs(const void* a, const void* b) {
     return pa->priority - pb->priority;
 }
 
-// PERMUTE-BY-SORTING from CLRS
+// permute by sorting
 void permute_by_sorting(int* A, int n) {
     SortPair* P = (SortPair*)malloc(n * sizeof(SortPair));
     
-    // Create array P with random priorities
+    
     for (int i = 0; i < n; i++) {
         P[i].value = A[i];
-        // RANDOM(1, n^3) - using n^3 to minimize probability of duplicates
         P[i].priority = random_range(1, n * n * n);
     }
     
@@ -37,7 +35,7 @@ void permute_by_sorting(int* A, int n) {
     free(P);
 }
 
-// RANDOMIZE-IN-PLACE from CLRS (forward Fisher-Yates)
+// randomise in place
 void randomize_in_place(int* A, int n) {
     for (int i = 0; i < n; i++) {
         // swap A[i] with A[RANDOM(i, n)]
@@ -48,7 +46,7 @@ void randomize_in_place(int* A, int n) {
     }
 }
 
-// Classic Fisher-Yates shuffle (backward version)
+//  Fisher-Yates shuffle 
 void fisher_yates(int* A, int n) {
     for (int i = n - 1; i > 0; i--) {
         int j = rand() % (i + 1);
@@ -59,12 +57,12 @@ void fisher_yates(int* A, int n) {
     }
 }
 
-// No shuffle - sequential order (worst case for BST)
+// No shuffle - sequential order 
 void no_shuffle(int* A, int n) {
-    // Array remains in sequential order 1, 2, 3, ..., n
+
     // This creates a degenerate BST with height n-1
-    (void)A;  // Suppress unused parameter warning
-    (void)n;  // Suppress unused parameter warning
+    (void)A;  // 
+    (void)n;  //
 }
 
 // Generate sequence from 1 to n
@@ -76,12 +74,12 @@ int* generate_sequence(int n) {
     return array;
 }
 
-// Get current time in milliseconds
+//timer
 double get_time_ms() {
     return ((double)clock() / CLOCKS_PER_SEC) * 1000.0;
 }
 
-// Generate random number in range [min, max]
+//generate rand num
 int random_range(int min, int max) {
     return min + rand() % (max - min + 1);
 }
